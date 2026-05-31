@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 280" width="200" height="280">
+  <!-- Anki-Tan Chibi Mascot -->
+
+  <!-- Hair back -->
+  <ellipse cx="100" cy="95" rx="72" ry="65" fill="#4FC3F7"/>
+
+  <!-- Hair highlights -->
+  <ellipse cx="60" cy="80" rx="25" ry="40" fill="#29B6F6" opacity="0.6"/>
+  <ellipse cx="140" cy="80" rx="25" ry="40" fill="#29B6F6" opacity="0.6"/>
+
+  <!-- Pigtail left -->
+  <ellipse cx="30" cy="100" rx="22" ry="35" fill="#4FC3F7"/>
+  <ellipse cx="30" cy="100" rx="15" ry="28" fill="#29B6F6" opacity="0.5"/>
+
+  <!-- Pigtail right -->
+  <ellipse cx="170" cy="100" rx="22" ry="35" fill="#4FC3F7"/>
+  <ellipse cx="170" cy="100" rx="15" ry="28" fill="#29B6F6" opacity="0.5"/>
+
+  <!-- Star hair accessories -->
+  <polygon points="35,65 38,72 46,73 40,78 42,86 35,82 28,86 30,78 24,73 32,72" fill="#2F80ED" stroke="#1565C0" stroke-width="1"/>
+  <polygon points="165,65 168,72 176,73 170,78 172,86 165,82 158,86 160,78 154,73 162,72" fill="#2F80ED" stroke="#1565C0" stroke-width="1"/>
+
+  <!-- Face -->
+  <ellipse cx="100" cy="100" rx="52" ry="48" fill="#FFF3E0"/>
+
+  <!-- Blush -->
+  <ellipse cx="70" cy="110" rx="10" ry="6" fill="#FFAB91" opacity="0.5"/>
+  <ellipse cx="130" cy="110" rx="10" ry="6" fill="#FFAB91" opacity="0.5"/>
+
+  <!-- Eyes -->
+  <ellipse cx="80" cy="100" rx="10" ry="12" fill="#7C4DFF"/>
+  <ellipse cx="120" cy="100" rx="10" ry="12" fill="#7C4DFF"/>
+  <ellipse cx="80" cy="100" rx="8" ry="10" fill="#311B92"/>
+  <ellipse cx="120" cy="100" rx="8" ry="10" fill="#311B92"/>
+  <ellipse cx="83" cy="95" rx="3" ry="4" fill="white"/>
+  <ellipse cx="123" cy="95" rx="3" ry="4" fill="white"/>
+  <ellipse cx="78" cy="98" rx="2" ry="2" fill="white" opacity="0.6"/>
+  <ellipse cx="118" cy="98" rx="2" ry="2" fill="white" opacity="0.6"/>
+
+  <!-- Mouth -->
+  <path d="M93 115 Q100 122 107 115" fill="none" stroke="#E65100" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Halo / Hat -->
+  <ellipse cx="100" cy="52" rx="28" ry="6" fill="none" stroke="#FFD54F" stroke-width="3" opacity="0.8"/>
+  <ellipse cx="100" cy="52" rx="28" ry="6" fill="#FFF9C4" opacity="0.3"/>
+
+  <!-- Bangs -->
+  <path d="M55 85 Q65 55 100 60 Q135 55 145 85" fill="#4FC3F7"/>
+  <path d="M65 85 Q75 62 100 65 Q125 62 135 85" fill="#29B6F6" opacity="0.5"/>
+
+  <!-- Body / Dress -->
+  <path d="M70 145 L65 210 Q100 225 135 210 L130 145 Q100 155 70 145Z" fill="#424242"/>
+  <path d="M75 145 L72 205 Q100 218 128 205 L125 145 Q100 152 75 145Z" fill="#616161"/>
+
+  <!-- Collar -->
+  <path d="M78 145 Q100 160 122 145" fill="white" stroke="white" stroke-width="2"/>
+  <path d="M85 148 L100 165 L115 148" fill="none" stroke="#BDBDBD" stroke-width="1"/>
+
+  <!-- Ribbon/Tie -->
+  <rect x="96" y="155" width="8" height="25" rx="2" fill="#2F80ED"/>
+  <polygon points="92,155 100,162 108,155" fill="#2F80ED"/>
+
+  <!-- Arms -->
+  <path d="M65 160 Q45 180 50 200" fill="none" stroke="#FFF3E0" stroke-width="12" stroke-linecap="round"/>
+  <path d="M135 160 Q155 180 150 200" fill="none" stroke="#FFF3E0" stroke-width="12" stroke-linecap="round"/>
+
+  <!-- Sleeves -->
+  <ellipse cx="68" cy="158" rx="10" ry="8" fill="#424242"/>
+  <ellipse cx="132" cy="158" rx="10" ry="8" fill="#424242"/>
+
+  <!-- Hands -->
+  <circle cx="50" cy="202" r="7" fill="#FFF3E0"/>
+  <circle cx="150" cy="202" r="7" fill="#FFF3E0"/>
+
+  <!-- Legs -->
+  <rect x="82" y="210" width="10" height="35" rx="5" fill="#FFF3E0"/>
+  <rect x="108" y="210" width="10" height="35" rx="5" fill="#FFF3E0"/>
+
+  <!-- Shoes -->
+  <ellipse cx="87" cy="248" rx="12" ry="7" fill="#424242"/>
+  <ellipse cx="113" cy="248" rx="12" ry="7" fill="#424242"/>
+
+  <!-- Skirt bottom -->
+  <path d="M65 210 Q100 230 135 210 Q130 220 100 225 Q70 220 65 210Z" fill="#757575"/>
+
+  <!-- Neck -->
+  <rect x="92" y="140" width="16" height="10" rx="3" fill="#FFF3E0"/>
+</svg>

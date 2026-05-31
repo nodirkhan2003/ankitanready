@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anki-Tan | Flashcard Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        anki: { blue: '#235390', light: '#2F80ED', sky: '#E8F0FE', green: '#33A852', dark: '#1A1A2E' },
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+
+        .stars-bg {
+            background-color: #E8F0FE;
+            background-image:
+                radial-gradient(2px 2px at 10% 20%, #2F80ED33 50%, transparent 50%),
+                radial-gradient(2px 2px at 30% 70%, #23539022 50%, transparent 50%),
+                radial-gradient(3px 3px at 60% 30%, #2F80ED22 50%, transparent 50%),
+                radial-gradient(2px 2px at 80% 60%, #235390 22 50%, transparent 50%),
+                radial-gradient(2px 2px at 90% 15%, #2F80ED33 50%, transparent 50%);
+        }
+
+        .star-decoration {
+            position: absolute;
+            color: #2F80ED;
+            opacity: 0.15;
+            font-size: 2rem;
+            animation: twinkle 3s ease-in-out infinite;
+        }
+        .star-decoration:nth-child(2) { animation-delay: 1s; }
+        .star-decoration:nth-child(3) { animation-delay: 2s; }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.1; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(1.2); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes bounceIn {
+            0% { opacity: 0; transform: scale(0.3); }
+            50% { transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .mascot-container {
+            position: fixed;
+            bottom: 0;
+            right: 20px;
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .mascot-bubble {
+            background: white;
+            border: 2px solid #2F80ED;
+            border-radius: 16px;
+            padding: 14px 18px;
+            margin-bottom: 8px;
+            margin-right: 10px;
+            max-width: 240px;
+            box-shadow: 0 8px 30px rgba(35, 83, 144, 0.15);
+            position: relative;
+            animation: bounceIn 0.5s ease;
+        }
+
+        .mascot-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            right: 60px;
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid white;
+        }
+
+        .mascot-bubble::before {
+            content: '';
+            position: absolute;
+            bottom: -13px;
+            right: 58px;
+            width: 0;
+            height: 0;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 12px solid #2F80ED;
+        }
+
+        .mascot-img {
+            width: 160px;
+            height: auto;
+            animation: float 4s ease-in-out infinite;
+            cursor: pointer;
+            transition: transform 0.3s;
+            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15));
+        }
+
+        .mascot-img:hover { transform: scale(1.08); }
+
+        .drop-zone {
+            border: 2.5px dashed #CBD5E1;
+            transition: all 0.3s ease;
+        }
+        .drop-zone.drag-over {
+            border-color: #2F80ED;
+            background: #E8F0FE;
+        }
+
+        .step-badge {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.875rem;
+            flex-shrink: 0;
+        }
+
+        .card-section {
+            animation: slideUp 0.5s ease forwards;
+            opacity: 0;
+        }
+        .card-section:nth-child(1) { animation-delay: 0.1s; }
+        .card-section:nth-child(2) { animation-delay: 0.2s; }
+        .card-section:nth-child(3) { animation-delay: 0.3s; }
+        .card-section:nth-child(4) { animation-delay: 0.4s; }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #235390, #2F80ED, #33A852);
+            background-size: 200% 100%;
+            animation: progressShimmer 2s linear infinite;
+        }
+
+        @keyframes progressShimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .lang-switch-btn {
+            transition: all 0.2s;
+        }
+        .lang-switch-btn.active {
+            background: white;
+            color: #235390;
+            font-weight: 700;
+        }
+
+        .swap-btn {
+            transition: transform 0.3s;
+        }
+        .swap-btn:hover {
+            transform: rotate(180deg);
+        }
+
+        #resultsPanel .download-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        #resultsPanel .download-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(35, 83, 144, 0.2);
+        }
+
+        .all-pages-check {
+            accent-color: #235390;
+        }
+
+        @media (max-width: 768px) {
+            .mascot-container { display: none; }
+            .mobile-mascot { display: flex !important; }
+        }
+        @media (min-width: 769px) {
+            .mobile-mascot { display: none !important; }
+        }
+    </style>
+</head>
+<body class="stars-bg min-h-screen">
+    <!-- Decorative Stars -->
+    <div class="star-decoration" style="top:10%;left:8%;">&#9733;</div>
+    <div class="star-decoration" style="top:25%;left:15%;">&#9733;</div>
+    <div class="star-decoration" style="top:50%;right:12%;">&#9733;</div>
+    <div class="star-decoration" style="top:70%;left:5%;">&#9733;</div>
+
+    <!-- Navbar -->
+    <nav class="bg-gradient-to-r from-anki-blue to-anki-light shadow-lg sticky top-0 z-40">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 bg-yellow-400 rounded-lg flex items-center justify-center shadow">
+                    <i class="fas fa-star text-white text-sm"></i>
+                </div>
+                <div>
+                    <h1 class="text-white font-extrabold text-lg leading-tight">Anki Tan</h1>
+                    <p class="text-blue-200 text-xs hidden sm:block i18n" data-key="subtitle">Anki Flashcard Generator</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 bg-white/15 rounded-lg p-1">
+                <button onclick="setLang('uz')" class="lang-switch-btn px-3 py-1.5 rounded-md text-sm text-white" id="lang-uz">UZ</button>
+                <button onclick="setLang('en')" class="lang-switch-btn px-3 py-1.5 rounded-md text-sm text-white" id="lang-en">EN</button>
+                <button onclick="setLang('ru')" class="lang-switch-btn px-3 py-1.5 rounded-md text-sm text-white" id="lang-ru">RU</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile mascot banner -->
+    <div class="mobile-mascot bg-white border-b border-blue-100 px-4 py-3 items-center gap-3" style="display:none;">
+        <img src="/static/images/ankitan.svg" alt="Anki-Tan" class="w-12 h-12 rounded-full object-cover border-2 border-anki-light">
+        <p class="text-sm text-gray-600 i18n" data-key="welcome_msg">Hi! I'm Anki-Tan! Upload your PDF book and I'll help you create flashcards!</p>
+    </div>
+
+    <main class="max-w-2xl mx-auto px-4 py-8 pb-20" id="mainContent">
+        <form id="uploadForm" class="space-y-6" onsubmit="return false;">
+
+            <!-- Step 1: Upload PDF -->
+            <div class="card-section bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="step-badge bg-anki-sky text-anki-blue">1</div>
+                    <h2 class="text-lg font-bold text-gray-800 i18n" data-key="upload_title">Upload PDF Book</h2>
+                </div>
+                <div class="drop-zone rounded-xl p-8 text-center cursor-pointer bg-gray-50" id="dropZone">
+                    <i class="fas fa-cloud-upload-alt text-4xl text-gray-300 mb-3"></i>
+                    <p class="text-gray-500 text-sm i18n" data-key="drop_text">Drop your PDF file here or click to browse</p>
+                    <p class="text-xs text-gray-400 mt-1 i18n" data-key="only_pdf">Only .pdf files accepted</p>
+                    <input type="file" id="fileInput" name="file" class="hidden" accept=".pdf">
+                    <div id="fileInfo" class="mt-4 hidden">
+                        <div class="inline-flex items-center gap-2 bg-anki-sky text-anki-blue px-4 py-2 rounded-lg text-sm font-medium">
+                            <i class="fas fa-file-pdf text-red-500"></i>
+                            <span id="fileName"></span>
+                            <button type="button" onclick="clearFile(event)" class="ml-2 text-gray-400 hover:text-red-500">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Page Range -->
+            <div class="card-section bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="step-badge bg-anki-sky text-anki-blue">2</div>
+                    <h2 class="text-lg font-bold text-gray-800 i18n" data-key="range_title">Page Range</h2>
+                </div>
+                <label class="flex items-center gap-2 mb-4 cursor-pointer">
+                    <input type="checkbox" id="allPages" class="all-pages-check w-4 h-4 rounded" onchange="toggleAllPages()">
+                    <span class="text-sm text-gray-700 i18n" data-key="all_pages">All pages</span>
+                </label>
+                <div class="flex items-center gap-3" id="pageRangeInputs">
+                    <div class="flex-1">
+                        <label class="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider i18n" data-key="from_label">FROM</label>
+                        <input type="number" name="from_page" id="fromPage" value="1" min="1" class="input input-bordered w-full focus:border-anki-light">
+                    </div>
+                    <div class="pt-5 text-gray-400">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider i18n" data-key="to_label">TO</label>
+                        <input type="number" name="to_page" id="toPage" value="50" min="1" class="input input-bordered w-full focus:border-anki-light">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Language Pair -->
+            <div class="card-section bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="step-badge bg-green-100 text-anki-green">
+                        <i class="fas fa-check text-xs"></i>
+                    </div>
+                    <h2 class="text-lg font-bold text-gray-800 i18n" data-key="lang_title">Language Pair</h2>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="flex-1">
+                        <label class="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider i18n" data-key="source_lang">SOURCE LANGUAGE</label>
+                        <select name="source_lang" id="sourceLang" class="select select-bordered w-full">
+                            <option value="en">English</option>
+                            <option value="ru">Russian</option>
+                            <option value="uz">Uzbek</option>
+                            <option value="de">German</option>
+                            <option value="fr">French</option>
+                            <option value="es">Spanish</option>
+                            <option value="ar">Arabic</option>
+                            <option value="tr">Turkish</option>
+                            <option value="zh">Chinese</option>
+                            <option value="ja">Japanese</option>
+                            <option value="ko">Korean</option>
+                        </select>
+                    </div>
+                    <button type="button" onclick="swapLangs()" class="swap-btn mt-5 w-10 h-10 rounded-full border-2 border-anki-light text-anki-light flex items-center justify-center hover:bg-anki-sky">
+                        <i class="fas fa-exchange-alt"></i>
+                    </button>
+                    <div class="flex-1">
+                        <label class="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider i18n" data-key="target_lang">TARGET LANGUAGE</label>
+                        <select name="target_lang" id="targetLang" class="select select-bordered w-full">
+                            <option value="uz" selected>Uzbek</option>
+                            <option value="en">English</option>
+                            <option value="ru">Russian</option>
+                            <option value="de">German</option>
+                            <option value="fr">French</option>
+                            <option value="es">Spanish</option>
+                            <option value="ar">Arabic</option>
+                            <option value="tr">Turkish</option>
+                            <option value="zh">Chinese</option>
+                            <option value="ja">Japanese</option>
+                            <option value="ko">Korean</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: API Settings (collapsible) -->
+            <div class="card-section bg-white rounded-2xl shadow-sm border border-gray-100">
+                <button type="button" onclick="toggleApiSettings()" class="w-full p-6 flex items-center justify-between text-left">
+                    <div class="flex items-center gap-3">
+                        <div class="step-badge bg-gray-100 text-gray-500">
+                            <i class="fas fa-cog text-xs"></i>
+                        </div>
+                        <h2 class="text-lg font-bold text-gray-800 i18n" data-key="api_title">API Settings</h2>
+                    </div>
+                    <i class="fas fa-chevron-down text-gray-400 transition-transform" id="apiChevron"></i>
+                </button>
+                <div class="px-6 pb-6 hidden" id="apiSettingsBody">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                        <p class="text-xs text-blue-700 i18n" data-key="api_hint">
+                            <!-- API_KEY_PLACEHOLDER: Enter your Google Gemini API key below. Get it from Google AI Studio. -->
+                            Enter your Google Gemini API key. Get one free at Google AI Studio.
+                        </p>
+                    </div>
+                    <label class="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">API KEY</label>
+                    <div class="relative">
+                        <input type="password" id="apiKey" name="api_key" placeholder="AIza..."
+                            class="input input-bordered w-full pr-10 font-mono text-sm">
+                        <button type="button" onclick="toggleApiKeyVisibility()" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-eye" id="apiEyeIcon"></i>
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-2 i18n" data-key="api_save_note">Your key is saved locally in your browser.</p>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="button" onclick="startProcessing()" id="submitBtn"
+                class="card-section w-full bg-gradient-to-r from-anki-blue to-anki-light hover:from-anki-light hover:to-anki-blue text-white font-bold py-4 px-6 rounded-2xl shadow-lg transition-all duration-300 text-lg flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed">
+                <i class="fas fa-play"></i>
+                <span class="i18n" data-key="start_btn">Start Processing</span>
+            </button>
+        </form>
+
+        <!-- Processing State -->
+        <div id="processingPanel" class="hidden">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
+                <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-anki-sky flex items-center justify-center">
+                    <i class="fas fa-cog fa-spin text-3xl text-anki-blue"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2 i18n" data-key="processing_title">Processing...</h3>
+                <p class="text-gray-500 text-sm mb-6 i18n" data-key="processing_msg">Anki-Tan is creating your flashcards. This may take a minute.</p>
+                <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                    <div class="progress-bar h-full rounded-full" style="width: 100%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results State -->
+        <div id="resultsPanel" class="hidden space-y-4">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
+                <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
+                    <i class="fas fa-check-circle text-4xl text-anki-green"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-1 i18n" data-key="success_title">Ready!</h3>
+                <p class="text-gray-500 text-sm i18n" data-key="success_msg">Your flashcards have been created successfully.</p>
+                <p class="text-anki-blue font-semibold mt-2" id="cardCount"></p>
+            </div>
+
+            <!-- Preview -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6" id="previewSection">
+                <h4 class="font-bold text-gray-700 mb-3 i18n" data-key="preview_title">Preview</h4>
+                <div class="space-y-2" id="previewCards"></div>
+            </div>
+
+            <!-- Download Buttons -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3" id="downloadButtons"></div>
+
+            <button onclick="resetForm()" class="w-full text-anki-blue font-semibold py-3 hover:bg-anki-sky rounded-xl transition-colors i18n" data-key="back_btn">
+                Create another one
+            </button>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorPanel" class="hidden">
+            <div class="bg-white rounded-2xl shadow-sm border border-red-200 p-8 text-center">
+                <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
+                    <i class="fas fa-exclamation-triangle text-3xl text-red-500"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2 i18n" data-key="error_title">Error</h3>
+                <p class="text-red-500 text-sm" id="errorMessage"></p>
+                <button onclick="resetForm()" class="btn bg-anki-blue text-white mt-6 border-none hover:bg-anki-light i18n" data-key="try_again">Try Again</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Mascot -->
+    <div class="mascot-container" id="mascotContainer">
+        <div class="mascot-bubble" id="mascotBubble">
+            <button onclick="closeBubble()" class="absolute -top-2 -right-2 w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 hover:bg-red-100 hover:text-red-500 text-xs">
+                <i class="fas fa-times"></i>
+            </button>
+            <p class="text-sm text-gray-700 leading-relaxed" id="bubbleText">
+                <span class="i18n" data-key="welcome_msg">Hi! I'm Anki-Tan! Upload your PDF book and I'll help you create flashcards!</span>
+            </p>
+        </div>
+        <img src="/static/images/ankitan.svg" alt="Anki-Tan" class="mascot-img" id="mascotImg" onclick="showBubble()">
+    </div>
+
+    <script>
+    const T = {
+        uz: {
+            subtitle: "Anki Flashcard Generatori",
+            upload_title: "PDF Kitobni yuklash",
+            drop_text: "PDF faylni bu yerga tashlang yoki tanlash uchun bosing",
+            only_pdf: "Faqat .pdf fayllar qabul qilinadi",
+            range_title: "Sahifalar oralig'i",
+            all_pages: "Barcha sahifalar",
+            from_label: "DAN",
+            to_label: "GACHA",
+            lang_title: "Tillar juftligi",
+            source_lang: "ASOSIY TIL",
+            target_lang: "TARJIMA TILI",
+            api_title: "API Sozlamalari",
+            api_hint: "Google Gemini API kalitingizni kiriting. Google AI Studio dan bepul oling.",
+            api_save_note: "Kalitingiz brauzeringizda saqlanadi.",
+            start_btn: "Jarayonni boshlash",
+            processing_title: "Ishlanmoqda...",
+            processing_msg: "Anki-Tan flashcardlaringizni yaratmoqda. Bu bir daqiqa vaqt olishi mumkin.",
+            success_title: "Tayyor!",
+            success_msg: "Flashcardlaringiz muvaffaqiyatli yaratildi.",
+            cards_created: "ta karta yaratildi",
+            preview_title: "Ko'rib chiqish",
+            back_btn: "Yana bitta yaratish",
+            error_title: "Xatolik",
+            try_again: "Qayta urinish",
+            welcome_msg: "Salom! Men Anki-Tanman! PDF kitobingizni yuklang, men sizga flashcardlar yaratishda yordam beraman!",
+            file_selected: "Fayl tanlandi! Endi sahifalar va tillarni belgilang.",
+            processing_bubble: "Ishlamoqda... Biroz kuting!",
+            done_bubble: "Tayyor! Fayllarni yuklab oling va Anki ga import qiling!",
+            error_no_file: "Iltimos, PDF fayl tanlang",
+            error_no_key: "Iltimos, API kalitini kiriting (API Sozlamalari bo'limida)",
+            error_pages: "Sahifa oralig'i noto'g'ri",
+        },
+        en: {
+            subtitle: "Anki Flashcard Generator",
+            upload_title: "Upload PDF Book",
+            drop_text: "Drop your PDF file here or click to browse",
+            only_pdf: "Only .pdf files accepted",
+            range_title: "Page Range",
+            all_pages: "All pages",
+            from_label: "FROM",
+            to_label: "TO",
+            lang_title: "Language Pair",
+            source_lang: "SOURCE LANGUAGE",
+            target_lang: "TARGET LANGUAGE",
+            api_title: "API Settings",
+            api_hint: "Enter your Google Gemini API key. Get one free at Google AI Studio.",
+            api_save_note: "Your key is saved locally in your browser.",
+            start_btn: "Start Processing",
+            processing_title: "Processing...",
+            processing_msg: "Anki-Tan is creating your flashcards. This may take a minute.",
+            success_title: "Ready!",
+            success_msg: "Your flashcards have been created successfully.",
+            cards_created: "cards created",
+            preview_title: "Preview",
+            back_btn: "Create another one",
+            error_title: "Error",
+            try_again: "Try Again",
+            welcome_msg: "Hi! I'm Anki-Tan! Upload your PDF book and I'll help you create flashcards!",
+            file_selected: "File selected! Now set the pages and languages.",
+            processing_bubble: "Working on it... Please wait!",
+            done_bubble: "Done! Download the files and import them into Anki!",
+            error_no_file: "Please select a PDF file",
+            error_no_key: "Please enter your API key (in API Settings section)",
+            error_pages: "Invalid page range",
+        },
+        ru: {
+            subtitle: "Генератор Anki карточек",
+            upload_title: "Загрузить PDF книгу",
+            drop_text: "Перетащите PDF файл сюда или нажмите для выбора",
+            only_pdf: "Принимаются только .pdf файлы",
+            range_title: "Диапазон страниц",
+            all_pages: "Все страницы",
+            from_label: "ОТ",
+            to_label: "ДО",
+            lang_title: "Языковая пара",
+            source_lang: "ИСХОДНЫЙ ЯЗЫК",
+            target_lang: "ЦЕЛЕВОЙ ЯЗЫК",
+            api_title: "Настройки API",
+            api_hint: "Введите ваш Google Gemini API ключ. Получите бесплатно в Google AI Studio.",
+            api_save_note: "Ваш ключ сохраняется локально в браузере.",
+            start_btn: "Начать обработку",
+            processing_title: "Обработка...",
+            processing_msg: "Анки-Тан создаёт ваши карточки. Это может занять минуту.",
+            success_title: "Готово!",
+            success_msg: "Ваши карточки успешно созданы.",
+            cards_created: "карточек создано",
+            preview_title: "Предпросмотр",
+            back_btn: "Создать ещё",
+            error_title: "Ошибка",
+            try_again: "Попробовать снова",
+            welcome_msg: "Привет! Я Анки-Тан! Загрузи PDF книгу, и я помогу создать карточки!",
+            file_selected: "Файл выбран! Теперь укажите страницы и языки.",
+            processing_bubble: "Работаю... Подождите немного!",
+            done_bubble: "Готово! Скачайте файлы и импортируйте их в Anki!",
+            error_no_file: "Пожалуйста, выберите PDF файл",
+            error_no_key: "Введите API ключ (в разделе Настройки API)",
+            error_pages: "Неверный диапазон страниц",
+        }
+    };
+
+    let currentLang = localStorage.getItem('ankitan_lang') || 'en';
+
+    function setLang(lang) {
+        currentLang = lang;
+        localStorage.setItem('ankitan_lang', lang);
+        document.querySelectorAll('.i18n').forEach(el => {
+            const key = el.getAttribute('data-key');
+            if (T[lang] && T[lang][key]) el.textContent = T[lang][key];
+        });
+        document.querySelectorAll('.lang-switch-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('lang-' + lang)?.classList.add('active');
+    }
+
+    // API key persistence
+    const savedKey = localStorage.getItem('ankitan_api_key') || '';
+    document.getElementById('apiKey').value = savedKey;
+    document.getElementById('apiKey').addEventListener('input', function() {
+        localStorage.setItem('ankitan_api_key', this.value);
+    });
+
+    // File upload
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', e => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+        if (e.dataTransfer.files.length && e.dataTransfer.files[0].type === 'application/pdf') {
+            fileInput.files = e.dataTransfer.files;
+            showFileInfo();
+        }
+    });
+    fileInput.addEventListener('change', showFileInfo);
+
+    function showFileInfo() {
+        if (fileInput.files.length) {
+            document.getElementById('fileName').textContent = fileInput.files[0].name;
+            document.getElementById('fileInfo').classList.remove('hidden');
+            updateBubble(T[currentLang].file_selected);
+            showBubble();
+        }
+    }
+
+    function clearFile(e) {
+        e.stopPropagation();
+        fileInput.value = '';
+        document.getElementById('fileInfo').classList.add('hidden');
+    }
+
+    function toggleAllPages() {
+        const checked = document.getElementById('allPages').checked;
+        const inputs = document.getElementById('pageRangeInputs');
+        if (checked) {
+            inputs.style.opacity = '0.4';
+            inputs.style.pointerEvents = 'none';
+            document.getElementById('fromPage').value = 1;
+            document.getElementById('toPage').value = 99999;
+        } else {
+            inputs.style.opacity = '1';
+            inputs.style.pointerEvents = 'auto';
+            document.getElementById('toPage').value = 50;
+        }
+    }
+
+    function swapLangs() {
+        const src = document.getElementById('sourceLang');
+        const tgt = document.getElementById('targetLang');
+        const tmp = src.value;
+        src.value = tgt.value;
+        tgt.value = tmp;
+    }
+
+    function toggleApiSettings() {
+        const body = document.getElementById('apiSettingsBody');
+        const chevron = document.getElementById('apiChevron');
+        body.classList.toggle('hidden');
+        chevron.style.transform = body.classList.contains('hidden') ? '' : 'rotate(180deg)';
+    }
+
+    function toggleApiKeyVisibility() {
+        const input = document.getElementById('apiKey');
+        const icon = document.getElementById('apiEyeIcon');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.className = 'fas fa-eye-slash';
+        } else {
+            input.type = 'password';
+            icon.className = 'fas fa-eye';
+        }
+    }
+
+    function showPanel(panelId) {
+        ['mainContent', 'processingPanel', 'resultsPanel', 'errorPanel'].forEach(id => {
+            const el = document.getElementById(id);
+            if (id === 'mainContent') {
+                el.querySelectorAll('#uploadForm').forEach(f => f.classList.toggle('hidden', panelId !== 'mainContent'));
+            }
+        });
+        document.getElementById('processingPanel').classList.toggle('hidden', panelId !== 'processingPanel');
+        document.getElementById('resultsPanel').classList.toggle('hidden', panelId !== 'resultsPanel');
+        document.getElementById('errorPanel').classList.toggle('hidden', panelId !== 'errorPanel');
+
+        if (panelId !== 'mainContent') {
+            document.getElementById('uploadForm').classList.add('hidden');
+        } else {
+            document.getElementById('uploadForm').classList.remove('hidden');
+        }
+    }
+
+    async function startProcessing() {
+        const apiKey = document.getElementById('apiKey').value.trim();
+        if (!fileInput.files.length) {
+            alert(T[currentLang].error_no_file);
+            return;
+        }
+        if (!apiKey) {
+            toggleApiSettings();
+            document.getElementById('apiSettingsBody').classList.remove('hidden');
+            document.getElementById('apiChevron').style.transform = 'rotate(180deg)';
+            alert(T[currentLang].error_no_key);
+            return;
+        }
+
+        const fromPage = parseInt(document.getElementById('fromPage').value);
+        const toPage = parseInt(document.getElementById('toPage').value);
+        if (fromPage > toPage || fromPage < 1) {
+            alert(T[currentLang].error_pages);
+            return;
+        }
+
+        showPanel('processingPanel');
+        updateBubble(T[currentLang].processing_bubble);
+        showBubble();
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+        formData.append('from_page', fromPage);
+        formData.append('to_page', toPage);
+        formData.append('source_lang', document.getElementById('sourceLang').value);
+        formData.append('target_lang', document.getElementById('targetLang').value);
+        formData.append('api_key', apiKey);
+
+        try {
+            const resp = await fetch('/api/generate', { method: 'POST', body: formData });
+            const data = await resp.json();
+
+            if (!resp.ok || data.error) {
+                throw new Error(data.error || 'Unknown error');
+            }
+
+            document.getElementById('cardCount').textContent = `${data.card_count} ${T[currentLang].cards_created}`;
+
+            const previewCards = document.getElementById('previewCards');
+            previewCards.innerHTML = '';
+            (data.preview || []).forEach(card => {
+                previewCards.innerHTML += `
+                    <div class="flex border border-gray-100 rounded-lg overflow-hidden text-sm">
+                        <div class="flex-1 p-3 bg-anki-sky font-medium text-gray-800">${escapeHtml(card.front)}</div>
+                        <div class="flex-1 p-3 bg-white text-gray-600">${escapeHtml(card.back)}</div>
+                    </div>`;
+            });
+
+            const dlBtns = document.getElementById('downloadButtons');
+            dlBtns.innerHTML = `
+                <a href="${data.files.apkg}" class="download-card flex flex-col items-center gap-2 bg-gradient-to-br from-anki-blue to-anki-light text-white rounded-xl p-5 font-bold shadow">
+                    <i class="fas fa-box-open text-2xl"></i>
+                    <span>.apkg</span>
+                    <span class="text-xs opacity-80">Anki Deck</span>
+                </a>
+                <a href="${data.files.txt}" class="download-card flex flex-col items-center gap-2 bg-white border-2 border-anki-light text-anki-blue rounded-xl p-5 font-bold">
+                    <i class="fas fa-file-alt text-2xl"></i>
+                    <span>.txt</span>
+                    <span class="text-xs opacity-60">Text</span>
+                </a>
+                <a href="${data.files.json}" class="download-card flex flex-col items-center gap-2 bg-white border-2 border-gray-200 text-gray-700 rounded-xl p-5 font-bold">
+                    <i class="fas fa-code text-2xl"></i>
+                    <span>.json</span>
+                    <span class="text-xs opacity-60">JSON</span>
+                </a>`;
+
+            showPanel('resultsPanel');
+            updateBubble(T[currentLang].done_bubble);
+            showBubble();
+
+        } catch (err) {
+            document.getElementById('errorMessage').textContent = err.message;
+            showPanel('errorPanel');
+        }
+    }
+
+    function resetForm() {
+        showPanel('mainContent');
+        fileInput.value = '';
+        document.getElementById('fileInfo').classList.add('hidden');
+    }
+
+    function escapeHtml(text) {
+        const d = document.createElement('div');
+        d.textContent = text;
+        return d.innerHTML;
+    }
+
+    // Mascot bubble
+    function updateBubble(text) {
+        document.getElementById('bubbleText').textContent = text;
+    }
+    function closeBubble() {
+        document.getElementById('mascotBubble').classList.add('hidden');
+    }
+    function showBubble() {
+        const bubble = document.getElementById('mascotBubble');
+        bubble.classList.remove('hidden');
+        bubble.style.animation = 'none';
+        bubble.offsetHeight;
+        bubble.style.animation = 'bounceIn 0.5s ease';
+    }
+
+    // Init
+    setLang(currentLang);
+    setTimeout(showBubble, 1500);
+    </script>
+</body>
+</html>
